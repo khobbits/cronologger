@@ -15,18 +15,19 @@ trap "$*" ERR
 
 #########################################################################
 # WHAT YOU NEED TO CHANGE.
-# Location of Cronologit CouchDB database
+# Location of Cronologit CouchDB database and ERRMAIL
 # The settings can be sourced from /etc/cronologger.conf or
 # you could supply them as environmental variables e.g. 
 # export CRONOLOGGER_SERVER=bla.domain.com
 # export CRONOLOGGER_DB=cronologger
-# Otherwise it defaults to http://localhost:5984/cronologger
+# Otherwise it defaults to http://adb:5984/cronologger
 #########################################################################
 
 [ -e /etc/cronologger.conf ] && . /etc/cronologger.conf
 
-CRONOLOGGER_SERVER=${CRONOLOGGER_SERVER:=localhost}
+CRONOLOGGER_SERVER=${CRONOLOGGER_SERVER:=adb}
 CRONOLOGGER_DB=${CRONOLOGGER_DB:=cronologger}
+ERRMAIL=${ERRMAIL:=logs@adb}
 URL_BASE="http://${CRONOLOGGER_SERVER}:5984/${CRONOLOGGER_DB}"
 
 ###################################################
@@ -45,6 +46,7 @@ TIME_START=`date "+%Y-%m-%d %T"`
 TIME_START_NOSPACES=`date "+%Y%m%d%H%M%S"`
 TEMP_FILE=`mktemp`
 TEMP_FILE2=`mktemp`
+TEMP_FILE3=`mktemp`
 
 # Get the FQDN of the host we are running on
 HOST=`hostname`
@@ -111,5 +113,21 @@ REV=`curl -s -X PUT -H 'Content-Type: text/plain' --data-binary @$STDOUT "$URL/s
 # Add the standard error attachment
 REV=`curl -s -X PUT -H 'Content-Type: text/plain' --data-binary @$STDERR "$URL/stderr?rev=${REV}"| sed "s/.*rev//g" | awk -F\" '{ print $3}'`
 
+
+if [ $RETURN_CODE -ne 0 -o -s "$STDERR" ]
+    then
+    echo "Cronologger on ${USER}@${HOST} detected failure or error output for the command:" > $TEMP_FILE3
+    echo "$@" >> $TEMP_FILE3
+    echo "For more information:" >> $TEMP_FILE3
+    echo "https://adb/cronl/" >> $TEMP_FILE3
+    echo " " >> $TEMP_FILE3
+    echo "RETURN_CODE: $RETURN_CODE" >> $TEMP_FILE3
+    echo "STDOUT:" >> $TEMP_FILE3
+    cat $STDOUT >> $TEMP_FILE3
+    echo "STDERR:" >> $TEMP_FILE3
+    cat $STDERR >> $TEMP_FILE3
+    cat $TEMP_FILE3 | mail -s "Cronologger Error" $ERRMAIL    
+fi
+
 # Clean up
-rm -f "$STDOUT" "$STDERR" "$TEMP_FILE" "$TEMP_FILE2"
+rm -f "$STDOUT" "$STDERR" "$TEMP_FILE" "$TEMP_FILE2" "$TEMP_FILE3"
