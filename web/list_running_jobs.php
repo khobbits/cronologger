@@ -39,7 +39,7 @@ if ( sizeof($view["rows"]) > 0 ) {
 
   foreach ( $view["rows"] as $key => $row ) {
   
-    $job_time = time() - strtotime($row["value"]["time"]);
+    $job_time = time() - $row["value"]["time"];
   
     print "<tr><td>" . $row["value"]["time"] . "</td>" .
     "<td align=center>" . $job_time . "</td>" .    
