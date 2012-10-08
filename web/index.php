@@ -13,6 +13,7 @@
   });
 
 function getJobsListing(search_type,showday) {
+  var targetdiv;
   if ( search_type == "errors" ){
     targetdiv = "#tabs-jobs-with-errors";
   } else {
@@ -26,7 +27,6 @@ function getJobsListing(search_type,showday) {
 }
 
 function getCurrentlyRunning() {
-  $("#tabs-currently-running").html('<img src="img/spinner.gif">');
   $.get('list_running_jobs.php', "" , function(data) {
     $("#tabs-currently-running").html(data);
     $("table").tablesorter();
@@ -45,9 +45,9 @@ td.centered {
 </style>
 <div id="tabs">
     <ul>
-	<li><a href="#tabs-jobs-with-errors">Jobs With Errors</a></li>
-	<li><a onclick='getJobsListing("all", "");' href="#tabs-job-log">Job Log</a></li>
-	<li><a onclick="getCurrentlyRunning();" href="#tabs-currently-running">Currently Running</a></li>
+    	<li><a href="#tabs-jobs-with-errors">Jobs With Errors</a></li>
+      <li><a href="#tabs-job-log">Jobs Log</a></li>
+      <li><a href="#tabs-currently-running">Currently Running</a></li>
     </ul>
 
 <div id="tabs-jobs-with-errors">
@@ -55,7 +55,7 @@ td.centered {
 </div>
 
 <div id="tabs-job-log">
-
+<img src="img/spinner.gif">
 </div>
 
 <div id="tabs-currently-running">
@@ -64,7 +64,10 @@ td.centered {
 </div>
 
 <script>
-getJobsListing("errors","#tabs-jobs-with-errors","");
+getJobsListing("errors","#tabs-jobs-with-errors");
+getJobsListing("log","#tabs-job-log");
+getCurrentlyRunning();
+
 </script>
 
 </body>
